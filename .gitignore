@@ -1,5 +1,5 @@
 # Files from the Advent of Code service
-example.txt
+example*.txt
 input.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/rust
