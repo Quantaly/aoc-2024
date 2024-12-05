@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/strictest",
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "preserve",
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "files": ["eslint.config.js", "prettier.config.js", "vite.config.ts"]
+}
