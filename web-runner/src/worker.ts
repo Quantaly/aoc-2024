@@ -44,7 +44,10 @@ addEventListener(
           ".",
           (() => {
             const cwd = new Map<string, Inode>();
-            cwd.set("input.txt", new File(new TextEncoder().encode(input)));
+            cwd.set(
+              "input.txt",
+              new File(new TextEncoder().encode(addTrailingNewline(input))),
+            );
             return cwd;
           })(),
         ),
@@ -60,3 +63,11 @@ addEventListener(
   },
   { once: true },
 );
+
+function addTrailingNewline(content: string): string {
+  if (!content.endsWith("\n")) {
+    return content + "\n";
+  } else {
+    return content;
+  }
+}
