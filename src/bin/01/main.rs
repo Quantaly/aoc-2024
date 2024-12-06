@@ -1,7 +1,6 @@
-use ahash::AHashMap;
 use anyhow::{anyhow, Result};
 use aoc_2024::input_buf_read;
-use std::io::BufRead;
+use std::{collections::BTreeMap, io::BufRead};
 
 fn main() -> Result<()> {
     let input = input_buf_read()?;
@@ -24,7 +23,7 @@ fn main() -> Result<()> {
     }
     println!("{difference_score}");
 
-    let mut b_occurrences = AHashMap::new();
+    let mut b_occurrences = BTreeMap::new();
     for &b in &b {
         b_occurrences.entry(b).and_modify(|x| *x += 1).or_insert(1);
     }

@@ -4,7 +4,6 @@ publish = false
 edition = "2021"
 
 [dependencies]
-ahash = "0.8.11"
 anyhow = "1.0.93"
 pest = "2.7.14"
 pest_derive = "2.7.14"
