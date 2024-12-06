@@ -1,7 +1,6 @@
 use anyhow::Result;
 use aoc_2024::input_string;
 use regex::Regex;
-use std::str::FromStr;
 
 fn main() -> Result<()> {
     let mul_regex = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)")?;
@@ -14,8 +13,8 @@ fn main() -> Result<()> {
         .captures_iter(&input)
         .map(|c| {
             let (_, [a, b]) = c.extract();
-            let a = u32::from_str(a)?;
-            let b = u32::from_str(b)?;
+            let a: u32 = a.parse()?;
+            let b: u32 = b.parse()?;
             Ok(a * b)
         })
         .sum::<Result<u32>>()?;
@@ -26,8 +25,8 @@ fn main() -> Result<()> {
         .flat_map(|enabled_block| {
             mul_regex.captures_iter(enabled_block.as_str()).map(|c| {
                 let (_, [a, b]) = c.extract();
-                let a = u32::from_str(a)?;
-                let b = u32::from_str(b)?;
+                let a: u32 = a.parse()?;
+                let b: u32 = b.parse()?;
                 Ok(a * b)
             })
         })

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use aoc_2024::input_buf_read;
-use std::{io::BufRead, str::FromStr};
+use std::io::BufRead;
 
 fn find_error(record: &[i32], skip: Option<usize>) -> Option<usize> {
     if record.len() < 2 {
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
         .map(|line| {
             line?
                 .split_ascii_whitespace()
-                .map(|x| i32::from_str(x).map_err(Into::into))
+                .map(|x| x.parse().map_err(Into::into))
                 .collect()
         })
         .collect::<Result<_>>()?;

@@ -1,7 +1,7 @@
 use ahash::AHashMap;
 use anyhow::{anyhow, Result};
 use aoc_2024::input_buf_read;
-use std::{io::BufRead, str::FromStr};
+use std::io::BufRead;
 
 fn main() -> Result<()> {
     let input = input_buf_read()?;
@@ -10,8 +10,8 @@ fn main() -> Result<()> {
         .map(|line| {
             let line = line?;
             let mut split = line.split_ascii_whitespace();
-            let a = i32::from_str(split.next().ok_or_else(|| anyhow!("no a"))?)?;
-            let b = i32::from_str(split.next().ok_or_else(|| anyhow!("no b"))?)?;
+            let a: i32 = split.next().ok_or_else(|| anyhow!("no a"))?.parse()?;
+            let b: i32 = split.next().ok_or_else(|| anyhow!("no b"))?.parse()?;
             Ok((a, b))
         })
         .collect::<Result<_>>()?;
