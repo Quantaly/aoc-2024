@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: rustup update stable
       - run: rustup target add wasm32-wasip1
-      - run: cargo build --verbose --target wasm32-wasip1 --release
+      - run: cargo build --target wasm32-wasip1 --release
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-release
