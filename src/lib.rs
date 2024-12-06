@@ -5,6 +5,8 @@ use std::{
     io::{BufRead, BufReader},
 };
 
+pub mod board;
+
 fn input_path() -> Result<String> {
     env::args()
         .nth(1)
