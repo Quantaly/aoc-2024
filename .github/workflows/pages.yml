@@ -27,6 +27,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: wasm-release
+          path: target/wasm32-wasip1/release
       - uses: pnpm/action-setup@v4
         with:
           version: latest
