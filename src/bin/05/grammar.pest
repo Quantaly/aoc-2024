@@ -1,0 +1,10 @@
+uint = @{ ASCII_DIGIT+ }
+
+ordering_rule = { uint ~ "|" ~ uint }
+ordering_rules = { ( ordering_rule ~ "\n" )+ }
+
+// require an odd number of pages so there's a "middle"
+update = { uint ~ ( "," ~ uint ~ "," ~ uint )* }
+updates = { ( update ~ "\n" )+ }
+
+file = _{ SOI ~ ordering_rules ~ "\n" ~ updates ~ EOI }
