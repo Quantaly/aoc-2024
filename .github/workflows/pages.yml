@@ -40,7 +40,6 @@ jobs:
       - run: cd web-runner && pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:
-          name: site-dist
           path: web-runner/dist
   pages-deploy:
     name: GitHub Pages deploy
