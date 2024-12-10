@@ -66,6 +66,7 @@ export default function App() {
             <option value="04">04</option>
             <option value="05">05</option>
             <option value="06">06</option>
+            <option value="07">07</option>
           </select>
         </label>
       </p>
