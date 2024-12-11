@@ -56,7 +56,13 @@ export default function App() {
 
   return (
     <>
-      <h1>Kai&rsquo;s Advent of Code 2024 Solutions</h1>
+      <h1>
+        Kai’s <a href="https://adventofcode.com/2024">Advent of Code 2024</a>{" "}
+        Solutions
+      </h1>
+      <p>
+        <a href="https://github.com/Quantaly/aoc-2024">Source code</a>
+      </p>
       <p>
         <label>
           Program:{" "}
