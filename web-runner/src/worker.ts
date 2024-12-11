@@ -68,7 +68,7 @@ addEventListener(
           wasi_snapshot_preview1: wasi.wasiImport,
         })) as Parameters<WASI["start"]>[0],
       );
-      postMessage({ code } as ExitMessage);
+      postMessage({ code } satisfies ExitMessage);
     }
   },
   { once: true },
