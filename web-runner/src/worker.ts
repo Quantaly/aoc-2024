@@ -14,6 +14,7 @@ import wasm05 from "../../target/wasm32-wasip1/release/05.wasm?init";
 import wasm06 from "../../target/wasm32-wasip1/release/06.wasm?init";
 import wasm07 from "../../target/wasm32-wasip1/release/07.wasm?init";
 import wasm08 from "../../target/wasm32-wasip1/release/08.wasm?init";
+import wasm09 from "../../target/wasm32-wasip1/release/09.wasm?init";
 import { ExitMessage, InitMessage, OutputMessage } from "./communication";
 
 const programs = {
@@ -25,6 +26,7 @@ const programs = {
   "06": wasm06,
   "07": wasm07,
   "08": wasm08,
+  "09": wasm09,
 } as const;
 
 addEventListener(
