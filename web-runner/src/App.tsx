@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExitMessage, InitMessage, OutputMessage } from "./communication";
 
 export default function App() {
@@ -7,45 +7,52 @@ export default function App() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<OutputMessage[]>([]);
 
-  const workerRef = useRef<Worker>();
+  const stopRef = useRef<() => void>();
 
   function run() {
+    stopRef.current?.();
     setIsRunning(true);
     setOutput([]);
-    workerRef.current?.terminate();
+
     const worker = new Worker(new URL("./worker", import.meta.url), {
       type: "module",
     });
-    worker.addEventListener(
-      "message",
-      ({ data }: MessageEvent<OutputMessage | ExitMessage>) => {
-        if ("code" in data) {
-          if (data.code === 0) {
-            setOutput((o) => [
-              ...o,
-              { line: "(Exit code 0)", stream: "stdout" },
-            ]);
-          } else {
-            setOutput((o) => [
-              ...o,
-              { line: `(Exit code ${String(data.code)})`, stream: "stderr" },
-            ]);
-          }
-          worker.terminate();
-          setIsRunning(false);
+    const listener = ({ data }: MessageEvent<OutputMessage | ExitMessage>) => {
+      if ("code" in data) {
+        if (data.code === 0) {
+          setOutput((o) => [...o, { line: "(Exit code 0)", stream: "stdout" }]);
         } else {
-          setOutput((o) => [...o, data]);
+          setOutput((o) => [
+            ...o,
+            { line: `(Exit code ${String(data.code)})`, stream: "stderr" },
+          ]);
         }
-      },
-    );
+        setIsRunning(false);
+      } else {
+        setOutput((o) => [...o, data]);
+      }
+    };
+    worker.addEventListener("message", listener);
     worker.postMessage({ program, input } satisfies InitMessage);
+
+    stopRef.current = () => {
+      worker.removeEventListener("message", listener);
+      worker.terminate();
+    };
   }
 
   function stop() {
     setIsRunning(false);
     setOutput((o) => [...o, { line: "Terminated", stream: "stderr" }]);
-    workerRef.current?.terminate();
+    stopRef.current?.();
   }
+
+  useEffect(
+    () => () => {
+      stopRef.current?.();
+    },
+    [],
+  );
 
   return (
     <>

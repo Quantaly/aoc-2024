@@ -69,6 +69,7 @@ addEventListener(
         })) as Parameters<WASI["start"]>[0],
       );
       postMessage({ code } satisfies ExitMessage);
+      close();
     }
   },
   { once: true },
