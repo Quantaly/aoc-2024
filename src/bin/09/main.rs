@@ -14,10 +14,10 @@ use std::io::Read;
 //     eprintln!("{line}");
 // }
 
-fn filesystem_checksum(disk: &[Option<usize>]) -> usize {
+fn filesystem_checksum(disk: &[Option<u64>]) -> u64 {
     disk.iter()
         .enumerate()
-        .filter_map(|(i, block)| block.map(|file_id| i * file_id))
+        .filter_map(|(i, block)| block.map(|file_id| (i as u64) * file_id))
         .sum()
 }
 
