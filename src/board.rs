@@ -1,13 +1,30 @@
 use crate::input_buf_read;
 use anyhow::Result;
-use std::io::BufRead;
+use std::{
+    io::BufRead,
+    ops::{Deref, DerefMut},
+};
 
 #[derive(Debug, Clone)]
-pub struct Board(pub Box<[Box<[u8]>]>);
+pub struct Board(Box<[Box<[u8]>]>);
 
 impl Board {
     pub fn get_at(&self, (i, j): (usize, usize)) -> Option<u8> {
-        self.0.get(i).and_then(|row| row.get(j)).copied()
+        self.get(i).and_then(|row| row.get(j)).copied()
+    }
+}
+
+impl Deref for Board {
+    type Target = Box<[Box<[u8]>]>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Board {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

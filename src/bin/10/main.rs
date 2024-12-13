@@ -4,7 +4,6 @@ use pathfinding::prelude::count_paths;
 
 fn find_all(board: &Board, value: u8) -> Vec<(usize, usize)> {
     board
-        .0
         .iter()
         .enumerate()
         .flat_map(|(i, row)| {

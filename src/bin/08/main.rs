@@ -54,7 +54,7 @@ fn main() -> Result<()> {
     let board = input_board()?;
 
     let mut antennae = BTreeMap::new();
-    for (i, row) in board.0.iter().enumerate() {
+    for (i, row) in board.iter().enumerate() {
         for (j, &cell) in row.iter().enumerate() {
             if cell != b'.' {
                 antennae.entry(cell).or_insert(Vec::new()).push((i, j));

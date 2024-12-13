@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use aoc_2024::board::{self, Board, Direction};
 
 fn find_start(board: &mut Board) -> Option<(usize, usize)> {
-    for (i, row) in board.0.iter_mut().enumerate() {
+    for (i, row) in board.iter_mut().enumerate() {
         for (j, cell) in row.iter_mut().enumerate() {
             if *cell == b'^' {
                 *cell = b'.';
