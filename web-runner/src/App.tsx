@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ExitMessage, InitMessage, OutputMessage } from "./communication";
+import { formatSpace, formatTime } from "./formatting";
 
 export default function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [program, setProgram] = useState("01");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<OutputMessage[]>([]);
+  const [exitStats, setExitStats] = useState<ExitMessage>();
 
   const stopRef = useRef<() => void>();
 
@@ -13,20 +15,14 @@ export default function App() {
     stopRef.current?.();
     setIsRunning(true);
     setOutput([]);
+    setExitStats(undefined);
 
     const worker = new Worker(new URL("./worker", import.meta.url), {
       type: "module",
     });
     const listener = ({ data }: MessageEvent<OutputMessage | ExitMessage>) => {
-      if ("code" in data) {
-        if (data.code === 0) {
-          setOutput((o) => [...o, { line: "(Exit code 0)", stream: "stdout" }]);
-        } else {
-          setOutput((o) => [
-            ...o,
-            { line: `(Exit code ${String(data.code)})`, stream: "stderr" },
-          ]);
-        }
+      if ("exitCode" in data) {
+        setExitStats(data);
         setIsRunning(false);
       } else {
         setOutput((o) => [...o, data]);
@@ -114,6 +110,13 @@ export default function App() {
           </li>
         ))}
       </ul>
+      {exitStats && (
+        <ul>
+          <li>Exit code: {exitStats.exitCode}</li>
+          <li>Execution time: {formatTime(exitStats.duration)}</li>
+          <li>Memory usage: {formatSpace(exitStats.memorySize)}</li>
+        </ul>
+      )}
     </>
   );
 }

@@ -65,12 +65,27 @@ addEventListener(
         ),
       ];
       const wasi = new WASI(args, env, fds);
-      const code = wasi.start(
-        (await programs[program as keyof typeof programs]({
-          wasi_snapshot_preview1: wasi.wasiImport,
-        })) as Parameters<WASI["start"]>[0],
+      const wasm = (await programs[program as keyof typeof programs]({
+        wasi_snapshot_preview1: wasi.wasiImport,
+      })) as WebAssembly.Instance & {
+        exports: {
+          memory: WebAssembly.Memory;
+          _start: () => void;
+        };
+      };
+      performance.mark("program start");
+      const exitCode = wasi.start(wasm);
+      performance.mark("program finish");
+      const measurement = performance.measure(
+        "program execution",
+        "program start",
+        "program finish",
       );
-      postMessage({ code } satisfies ExitMessage);
+      postMessage({
+        exitCode,
+        duration: measurement.duration,
+        memorySize: wasm.exports.memory.buffer.byteLength,
+      } satisfies ExitMessage);
       close();
     }
   },

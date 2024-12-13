@@ -9,5 +9,7 @@ export interface OutputMessage {
 }
 
 export interface ExitMessage {
-  readonly code: number;
+  readonly exitCode: number;
+  readonly duration: number;
+  readonly memorySize: number;
 }
