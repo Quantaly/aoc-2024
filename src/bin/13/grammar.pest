@@ -1,0 +1,10 @@
+WHITESPACE = _{ WHITE_SPACE }
+uint = @{ ASCII_DIGIT+ }
+
+machine = {
+    "Button" ~ "A" ~ ":" ~ "X" ~ "+" ~ uint ~ "," ~ "Y" ~ "+" ~ uint ~
+    "Button" ~ "B" ~ ":" ~ "X" ~ "+" ~ uint ~ "," ~ "Y" ~ "+" ~ uint ~
+    "Prize" ~ ":" ~ "X" ~ "=" ~ uint ~ "," ~ "Y" ~ "=" ~ uint
+}
+
+file = _{ SOI ~ machine* ~ EOI }
