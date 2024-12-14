@@ -1,6 +1,7 @@
 export interface InitMessage {
   readonly program: string;
   readonly input: string;
+  readonly extraArgs: string[];
 }
 
 export interface OutputMessage {

@@ -19,6 +19,7 @@ import wasm10 from "../../target/wasm32-wasip1/release/10.wasm?init";
 import wasm11 from "../../target/wasm32-wasip1/release/11.wasm?init";
 import wasm12 from "../../target/wasm32-wasip1/release/12.wasm?init";
 import wasm13 from "../../target/wasm32-wasip1/release/13.wasm?init";
+import wasm14 from "../../target/wasm32-wasip1/release/14.wasm?init";
 import { ExitMessage, InitMessage, OutputMessage } from "./communication";
 
 const programs = {
@@ -35,14 +36,17 @@ const programs = {
   "11": wasm11,
   "12": wasm12,
   "13": wasm13,
+  "14": wasm14,
 } as const;
 
 addEventListener(
   "message",
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
-  async ({ data: { program, input } }: MessageEvent<InitMessage>) => {
+  async ({
+    data: { program, input, extraArgs },
+  }: MessageEvent<InitMessage>) => {
     if (program in programs) {
-      const args = [program, "input.txt"];
+      const args = [program, "input.txt", ...extraArgs];
       const env: string[] = [];
       const fds = [
         // stdin

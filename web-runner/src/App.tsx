@@ -7,7 +7,9 @@ export default function App() {
   const [program, setProgram] = useState("01");
   const [input, setInput] = useState("");
   const [output, setOutput] = useState<OutputMessage[]>([]);
-  const [exitStats, setExitStats] = useState<ExitMessage>();
+  const [exitStats, setExitStats] = useState<ExitMessage | "Terminated">();
+
+  const [day14RoomSize, setDay14RoomSize] = useState("standard");
 
   const stopRef = useRef<() => void>();
 
@@ -29,7 +31,16 @@ export default function App() {
       }
     };
     worker.addEventListener("message", listener);
-    worker.postMessage({ program, input } satisfies InitMessage);
+    worker.postMessage({
+      program,
+      input,
+      extraArgs:
+        program === "14"
+          ? day14RoomSize === "example"
+            ? ["11", "7"]
+            : ["101", "103"]
+          : [],
+    } satisfies InitMessage);
 
     stopRef.current = () => {
       worker.removeEventListener("message", listener);
@@ -39,7 +50,7 @@ export default function App() {
 
   function stop() {
     setIsRunning(false);
-    setOutput((o) => [...o, { line: "Terminated", stream: "stderr" }]);
+    setExitStats("Terminated");
     stopRef.current?.();
   }
 
@@ -82,9 +93,41 @@ export default function App() {
             <option value="11">11</option>
             <option value="12">12</option>
             <option value="13">13</option>
+            <option value="14">14</option>
           </select>
         </label>
       </p>
+      {program === "14" && (
+        <>
+          <p className="warning">
+            Warning: My implementation for day 14 part 2 is to output all of the
+            images until it finds a cycle, at which point I can Ctrl-F through
+            the output for a bunch of asterisks in a row.{" "}
+            <strong>
+              This is far more than enough output to crash a browser tab.
+            </strong>{" "}
+            If you want to use this for part 1, be sure to hit the Stop button
+            pretty quickly after hitting the Run button. At some point I might
+            revisit this and try to make a more browser-friendly implementation
+            but today I can’t be bothered, this was really dumb. I’m already
+            annoyed that I have to have the extra room size dropdown.
+          </p>
+          <p>
+            <label>
+              Room size:{" "}
+              <select
+                value={day14RoomSize}
+                onInput={({ currentTarget }) => {
+                  setDay14RoomSize(currentTarget.value);
+                }}
+              >
+                <option value="standard">Standard (101 x 103)</option>
+                <option value="example">Example (11 x 7)</option>
+              </select>
+            </label>
+          </p>
+        </>
+      )}
       <label>
         <p>Input:</p>
         <div>
@@ -105,19 +148,23 @@ export default function App() {
           Stop
         </button>
       </p>
-      <ul>
+      <ul className="output">
         {output.map(({ line, stream }, i) => (
           <li key={i} className={stream}>
             {line}
           </li>
         ))}
       </ul>
-      {exitStats && (
-        <ul>
-          <li>Exit code: {exitStats.exitCode}</li>
-          <li>Execution time: {formatTime(exitStats.duration)}</li>
-          <li>Memory usage: {formatSpace(exitStats.memorySize)}</li>
-        </ul>
+      {exitStats === "Terminated" ? (
+        <p className="stderr">Terminated</p>
+      ) : (
+        exitStats && (
+          <ul>
+            <li>Exit code: {exitStats.exitCode}</li>
+            <li>Execution time: {formatTime(exitStats.duration)}</li>
+            <li>Memory usage: {formatSpace(exitStats.memorySize)}</li>
+          </ul>
+        )
       )}
     </>
   );
