@@ -1,0 +1,12 @@
+WHITESPACE = _{ WHITE_SPACE }
+
+// don't try to parse the board here, just grab it as a string
+board = @{ ( "@" | "O" | "#" | "." | NEWLINE )* }
+
+move_up = @{ "^" }
+move_down = @{ "v" }
+move_left = @{ "<" }
+move_right = @{ ">" }
+moves = { ( move_up | move_down | move_left | move_right )* }
+
+file = _{ SOI ~ board ~ moves ~ EOI }

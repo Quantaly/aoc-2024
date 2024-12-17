@@ -1,7 +1,7 @@
 use crate::input_buf_read;
 use anyhow::Result;
 use std::{
-    io::BufRead,
+    io::{self, BufRead},
     ops::{Deref, DerefMut},
 };
 
@@ -9,6 +9,21 @@ use std::{
 pub struct Board(Box<[Box<[u8]>]>);
 
 impl Board {
+    pub fn read(input: impl BufRead) -> io::Result<Board> {
+        input
+            .split(b'\n')
+            .map(|line| {
+                line.map(|mut line| {
+                    if line.last() == Some(&b'\r') {
+                        line.pop();
+                    }
+                    line.into_boxed_slice()
+                })
+            })
+            .collect::<Result<_, _>>()
+            .map(Board)
+    }
+
     pub fn get_at(&self, (i, j): (usize, usize)) -> Option<u8> {
         self.get(i).and_then(|row| row.get(j)).copied()
     }
@@ -29,19 +44,7 @@ impl DerefMut for Board {
 }
 
 pub fn input_board() -> Result<Board> {
-    input_buf_read()?
-        .split(b'\n')
-        .map(|line| {
-            line.map(|mut line| {
-                if line.last() == Some(&b'\r') {
-                    line.pop();
-                }
-                line.into_boxed_slice()
-            })
-            .map_err(Into::into)
-        })
-        .collect::<Result<_>>()
-        .map(Board)
+    Board::read(input_buf_read()?).map_err(Into::into)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

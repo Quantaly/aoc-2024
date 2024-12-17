@@ -20,6 +20,7 @@ import wasm11 from "../../target/wasm32-wasip1/release/11.wasm?init";
 import wasm12 from "../../target/wasm32-wasip1/release/12.wasm?init";
 import wasm13 from "../../target/wasm32-wasip1/release/13.wasm?init";
 import wasm14 from "../../target/wasm32-wasip1/release/14.wasm?init";
+import wasm15 from "../../target/wasm32-wasip1/release/15.wasm?init";
 import { ExitMessage, InitMessage, OutputMessage } from "./communication";
 
 const programs = {
@@ -37,6 +38,7 @@ const programs = {
   "12": wasm12,
   "13": wasm13,
   "14": wasm14,
+  "15": wasm15,
 } as const;
 
 addEventListener(
