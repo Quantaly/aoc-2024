@@ -1,7 +1,7 @@
 WHITESPACE = _{ WHITE_SPACE }
-int = @{ "-"? ~ ASCII_DIGIT+ }
+int        = @{ "-"? ~ ASCII_DIGIT+ }
 
 int_pair = { int ~ "," ~ int }
-robot = { "p" ~ "=" ~ int_pair ~ "v" ~ "=" ~ int_pair }
+robot    = { "p" ~ "=" ~ int_pair ~ "v" ~ "=" ~ int_pair }
 
 file = _{ SOI ~ robot* ~ EOI }

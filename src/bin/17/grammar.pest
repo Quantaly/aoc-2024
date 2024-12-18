@@ -1,0 +1,36 @@
+WHITESPACE = _{ WHITE_SPACE }
+uint       = @{ ASCII_DIGIT+ }
+
+lit_0 = @{ "0" }
+lit_1 = @{ "1" }
+lit_2 = @{ "2" }
+lit_3 = @{ "3" }
+lit_4 = @{ "4" }
+lit_5 = @{ "5" }
+lit_6 = @{ "6" }
+lit_7 = @{ "7" }
+
+reg_a = @{ "4" }
+reg_b = @{ "5" }
+reg_c = @{ "6" }
+
+literal = _{ lit_0 | lit_1 | lit_2 | lit_3 | lit_4 | lit_5 | lit_6 | lit_7 }
+combo   = _{ lit_0 | lit_1 | lit_2 | lit_3 | reg_a | reg_b | reg_c }
+
+instr_adv =  { "0" ~ "," ~ combo }
+instr_bxl =  { "1" ~ "," ~ literal }
+instr_bst =  { "2" ~ "," ~ combo }
+instr_jnz =  { "3" ~ "," ~ literal }
+instr_bxc =  { "4" ~ "," ~ literal }
+instr_out =  { "5" ~ "," ~ combo }
+instr_bdv =  { "6" ~ "," ~ combo }
+instr_cdv =  { "7" ~ "," ~ combo }
+instr     = _{ instr_adv | instr_bxl | instr_bst | instr_jnz | instr_bxc | instr_out | instr_bdv | instr_cdv }
+
+file = _{
+    SOI ~  //
+  "Register" ~ "A" ~ ":" ~ uint ~  //
+  "Register" ~ "B" ~ ":" ~ uint ~  //
+  "Register" ~ "C" ~ ":" ~ uint ~  //
+  "Program" ~ ":" ~ (instr ~ ("," ~ instr)*)? ~ EOI
+}
