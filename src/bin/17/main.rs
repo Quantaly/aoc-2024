@@ -199,12 +199,6 @@ fn main() -> Result<()> {
                 ));
             }
             match instr.operand {
-                Operand::RegisterA => {
-                    if has_adv_3 {
-                        eprintln!("(my solution doesn't even work for their example, oops)");
-                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
-                    }
-                }
                 Operand::RegisterB => {
                     if !has_init_b {
                         return Err(anyhow!("this solution only works for programs that initialize regB before reading it"));
@@ -258,15 +252,9 @@ fn main() -> Result<()> {
                     has_out = true;
                 }
                 Opcode::Bdv => {
-                    if has_adv_3 {
-                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
-                    }
                     has_init_b = true;
                 }
                 Opcode::Cdv => {
-                    if has_adv_3 {
-                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
-                    }
                     has_init_c = true;
                 }
             }
