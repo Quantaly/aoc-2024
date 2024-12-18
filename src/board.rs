@@ -10,7 +10,8 @@ pub type Board = Box<[Box<[u8]>]>;
 
 pub trait BoardExt: Sized + private::Sealed {
     fn read(input: impl BufRead) -> io::Result<Self>;
-    fn get_at(&self, pos: (usize, usize)) -> Option<u8>;
+    fn get_at(&self, pos: impl Into<Option<(usize, usize)>>) -> Option<u8>;
+    fn find_tile(&self, cell: u8) -> Option<(usize, usize)>;
 }
 
 impl private::Sealed for Board {}
@@ -29,8 +30,20 @@ impl BoardExt for Board {
             .collect::<Result<_, _>>()
     }
 
-    fn get_at(&self, (i, j): (usize, usize)) -> Option<u8> {
-        self.get(i).and_then(|row| row.get(j)).copied()
+    fn get_at(&self, pos: impl Into<Option<(usize, usize)>>) -> Option<u8> {
+        pos.into()
+            .and_then(|(i, j)| self.get(i).and_then(|row| row.get(j)).copied())
+    }
+
+    fn find_tile(&self, target: u8) -> Option<(usize, usize)> {
+        self.iter()
+            .enumerate()
+            .flat_map(|(i, row)| {
+                row.iter()
+                    .enumerate()
+                    .filter_map(move |(j, &tile)| if tile == target { Some((i, j)) } else { None })
+            })
+            .next()
     }
 }
 
@@ -76,6 +89,34 @@ impl Direction {
             Southwest => Northeast,
             South => North,
             Southeast => Northwest,
+        }
+    }
+
+    pub fn clockwise(self) -> Direction {
+        use Direction::*;
+        match self {
+            Northwest => Northeast,
+            North => East,
+            Northeast => Southeast,
+            West => North,
+            East => South,
+            Southwest => Northwest,
+            South => West,
+            Southeast => Southwest,
+        }
+    }
+
+    pub fn counter_clockwise(self) -> Direction {
+        use Direction::*;
+        match self {
+            Northwest => Southwest,
+            North => West,
+            Northeast => Northwest,
+            West => South,
+            East => North,
+            Southwest => Southeast,
+            South => East,
+            Southeast => Northeast,
         }
     }
 }
