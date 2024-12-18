@@ -1,5 +1,5 @@
 use anyhow::Result;
-use aoc_2024::board::{input_board, Board};
+use aoc_2024::board::{input_board, Board, BoardExt};
 use pathfinding::prelude::count_paths;
 
 fn find_all(board: &Board, value: u8) -> Vec<(usize, usize)> {

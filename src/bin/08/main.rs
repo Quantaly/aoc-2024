@@ -1,5 +1,5 @@
 use anyhow::Result;
-use aoc_2024::board::{input_board, Board};
+use aoc_2024::board::{input_board, Board, BoardExt};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug)]

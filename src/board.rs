@@ -1,15 +1,21 @@
 use crate::input_buf_read;
 use anyhow::Result;
-use std::{
-    io::{self, BufRead},
-    ops::{Deref, DerefMut},
-};
+use std::io::{self, BufRead};
 
-#[derive(Debug, Clone)]
-pub struct Board(Box<[Box<[u8]>]>);
+mod private {
+    pub trait Sealed {}
+}
 
-impl Board {
-    pub fn read(input: impl BufRead) -> io::Result<Board> {
+pub type Board = Box<[Box<[u8]>]>;
+
+pub trait BoardExt: Sized + private::Sealed {
+    fn read(input: impl BufRead) -> io::Result<Self>;
+    fn get_at(&self, pos: (usize, usize)) -> Option<u8>;
+}
+
+impl private::Sealed for Board {}
+impl BoardExt for Board {
+    fn read(input: impl BufRead) -> io::Result<Board> {
         input
             .split(b'\n')
             .map(|line| {
@@ -21,25 +27,10 @@ impl Board {
                 })
             })
             .collect::<Result<_, _>>()
-            .map(Board)
     }
 
-    pub fn get_at(&self, (i, j): (usize, usize)) -> Option<u8> {
+    fn get_at(&self, (i, j): (usize, usize)) -> Option<u8> {
         self.get(i).and_then(|row| row.get(j)).copied()
-    }
-}
-
-impl Deref for Board {
-    type Target = Box<[Box<[u8]>]>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Board {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 

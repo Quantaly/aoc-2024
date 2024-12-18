@@ -1,5 +1,5 @@
 use anyhow::Result;
-use aoc_2024::board::{input_board, Direction};
+use aoc_2024::board::{input_board, BoardExt, Direction};
 use pathfinding::prelude::components;
 use std::collections::HashSet;
 

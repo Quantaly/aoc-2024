@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use aoc_2024::{
-    board::{Board, Direction},
+    board::{Board, BoardExt, Direction},
     input_string,
 };
 use pest::Parser;
