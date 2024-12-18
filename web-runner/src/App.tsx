@@ -9,7 +9,7 @@ export default function App() {
   const [output, setOutput] = useState<OutputMessage[]>([]);
   const [exitStats, setExitStats] = useState<ExitMessage | "Terminated">();
 
-  const [day14RoomSize, setDay14RoomSize] = useState("standard");
+  const [boardSize, setBoardSize] = useState("standard");
 
   const stopRef = useRef<() => void>();
 
@@ -36,10 +36,14 @@ export default function App() {
       input,
       extraArgs:
         program === "14"
-          ? day14RoomSize === "example"
+          ? boardSize === "example"
             ? ["11", "7"]
             : ["101", "103"]
-          : [],
+          : program === "18"
+            ? boardSize === "example"
+              ? ["6", "12"]
+              : ["70", "1024"]
+            : [],
     } satisfies InitMessage);
 
     stopRef.current = () => {
@@ -97,6 +101,7 @@ export default function App() {
             <option value="15">15</option>
             <option value="16">16</option>
             <option value="17">17</option>
+            <option value="18">18</option>
           </select>
         </label>
       </p>
@@ -119,9 +124,9 @@ export default function App() {
             <label>
               Room size:{" "}
               <select
-                value={day14RoomSize}
+                value={boardSize}
                 onInput={({ currentTarget }) => {
-                  setDay14RoomSize(currentTarget.value);
+                  setBoardSize(currentTarget.value);
                 }}
               >
                 <option value="standard">Standard (101 x 103)</option>
@@ -130,6 +135,26 @@ export default function App() {
             </label>
           </p>
         </>
+      )}
+      {program === "18" && (
+        <p>
+          <label>
+            Memory size:{" "}
+            <select
+              value={boardSize}
+              onInput={({ currentTarget }) => {
+                setBoardSize(currentTarget.value);
+              }}
+            >
+              <option value="standard">
+                Standard (70 x 70, first 1024 for part 1)
+              </option>
+              <option value="example">
+                Example (6 x 6, first 12 for part 1)
+              </option>
+            </select>
+          </label>
+        </p>
       )}
       <label>
         <p>Input:</p>
