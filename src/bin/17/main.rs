@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use aoc_2024::input_string;
 use pest::Parser;
 use pest_derive::Parser;
@@ -15,57 +15,63 @@ struct ExecutionState {
     instr_index: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct Instruction {
-    opcode: Opcode,
-    operand: Operand,
-}
-
-impl Instruction {
-    fn execute(&self, state: &mut ExecutionState) -> Option<i64> {
+impl ExecutionState {
+    fn execute(&mut self, instr: &Instruction) -> Option<i64> {
         use Opcode::*;
-        state.instr_index += 1;
-        match self.opcode {
+        self.instr_index += 1;
+        match instr.opcode {
             Adv => {
-                state.a = state.a / (1 << self.operand.value(state));
+                self.a /= 1 << instr.operand.value(self);
                 None
             }
             Bxl => {
-                state.b ^= self.operand.value(state);
+                self.b ^= instr.operand.value(self);
                 None
             }
             Bst => {
-                state.b = self.operand.value(state) % 8;
+                self.b = instr.operand.value(self) % 8;
                 None
             }
             Jnz => {
-                if state.a != 0 {
-                    let value = self.operand.value(state);
+                if self.a != 0 {
+                    let value = instr.operand.value(self);
                     if value % 2 != 0 {
                         panic!("program jumps to a misaligned instruction");
                     }
-                    state.instr_index = (self.operand.value(state) / 2) as usize;
+                    self.instr_index = (instr.operand.value(self) / 2) as usize;
                 }
                 None
             }
             Bxc => {
-                state.b ^= state.c;
+                self.b ^= self.c;
                 None
             }
-            Out => Some(self.operand.value(state) % 8),
+            Out => Some(instr.operand.value(self) % 8),
             Bdv => {
-                state.b = state.a / (1 << self.operand.value(state));
+                self.b = self.a / (1 << instr.operand.value(self));
                 None
             }
             Cdv => {
-                state.c = state.a / (1 << self.operand.value(state));
+                self.c = self.a / (1 << instr.operand.value(self));
                 None
             }
         }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Instruction {
+    opcode: Opcode,
+    operand: Operand,
+}
+
+impl Instruction {
+    fn assemble(&self) -> [i64; 2] {
+        [self.opcode.assemble(), self.operand.assemble()]
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Opcode {
     Adv,
     Bxl,
@@ -77,7 +83,23 @@ enum Opcode {
     Cdv,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Opcode {
+    fn assemble(&self) -> i64 {
+        use Opcode::*;
+        match self {
+            Adv => 0,
+            Bxl => 1,
+            Bst => 2,
+            Jnz => 3,
+            Bxc => 4,
+            Out => 5,
+            Bdv => 6,
+            Cdv => 7,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Operand {
     Literal(i64),
     RegisterA,
@@ -86,6 +108,16 @@ enum Operand {
 }
 
 impl Operand {
+    fn assemble(&self) -> i64 {
+        use Operand::*;
+        match self {
+            &Literal(value) => value,
+            RegisterA => 4,
+            RegisterB => 5,
+            RegisterC => 6,
+        }
+    }
+
     fn value(&self, state: &ExecutionState) -> i64 {
         use Operand::*;
         match self {
@@ -142,7 +174,7 @@ fn main() -> Result<()> {
 
     let mut has_output = false;
     while let Some(instr) = program.get(state.instr_index) {
-        if let Some(output) = instr.execute(&mut state) {
+        if let Some(output) = state.execute(instr) {
             if has_output {
                 print!(",");
             }
@@ -152,7 +184,142 @@ fn main() -> Result<()> {
     }
     println!();
 
-    eprintln!("haven't done part 2 yet");
+    {
+        // my solution to part 2 requires some fairly particular constraints on the input
+        // validate it here before trying to run my solution
+        let mut has_adv_3 = false;
+        let mut has_init_b = false;
+        let mut has_init_c = false;
+        let mut has_out = false;
+        let mut has_jnz_0 = false;
+        for instr in &program {
+            if has_jnz_0 {
+                return Err(anyhow!(
+                    "this solution only works for programs without any branches except at the end"
+                ));
+            }
+            match instr.operand {
+                Operand::RegisterA => {
+                    if has_adv_3 {
+                        eprintln!("(my solution doesn't even work for their example, oops)");
+                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
+                    }
+                }
+                Operand::RegisterB => {
+                    if !has_init_b {
+                        return Err(anyhow!("this solution only works for programs that initialize regB before reading it"));
+                    }
+                }
+                Operand::RegisterC => {
+                    if !has_init_c {
+                        return Err(anyhow!("this solution only works for programs that initialize regC before reading it"));
+                    }
+                }
+                _ => {}
+            }
+            match instr.opcode {
+                Opcode::Adv => {
+                    if has_adv_3 {
+                        return Err(anyhow!("this solution only works for programs that only modify regA once per loop"));
+                    }
+                    if instr.operand != Operand::Literal(3) {
+                        return Err(anyhow!("this solution only works for programs that only modify regA with an adv 3"));
+                    }
+                    has_adv_3 = true;
+                }
+                Opcode::Bxl => {
+                    if !has_init_b {
+                        return Err(anyhow!("this solution only works for programs that initialize regB before reading it"));
+                    }
+                }
+                Opcode::Bst => {
+                    has_init_b = true;
+                }
+                Opcode::Jnz => {
+                    if instr.operand != Operand::Literal(0) {
+                        return Err(anyhow!("this solution only works for programs whose only jnz instruction is jnz 0"));
+                    }
+                    has_jnz_0 = true;
+                }
+                Opcode::Bxc => {
+                    if !has_init_b {
+                        return Err(anyhow!("this solution only works for programs that initialize regB before reading it"));
+                    }
+                    if !has_init_c {
+                        return Err(anyhow!("this solution only works for programs that initialize regC before reading it"));
+                    }
+                }
+                Opcode::Out => {
+                    if has_out {
+                        return Err(anyhow!(
+                            "this solution only works for programs with only one out instruction"
+                        ));
+                    }
+                    has_out = true;
+                }
+                Opcode::Bdv => {
+                    if has_adv_3 {
+                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
+                    }
+                    has_init_b = true;
+                }
+                Opcode::Cdv => {
+                    if has_adv_3 {
+                        return Err(anyhow!("this solution only works for programs that don't read regA after modifying it in the loop"));
+                    }
+                    has_init_c = true;
+                }
+            }
+        }
+        if !has_adv_3 {
+            return Err(anyhow!(
+                "this solution only works for programs with an adv 3 instruction"
+            ));
+        }
+        if !has_out {
+            return Err(anyhow!(
+                "this solution only works for programs with an out instruction"
+            ));
+        }
+        if !has_jnz_0 {
+            return Err(anyhow!(
+                "this solution only works for programs that end with a jnz 0 instruction"
+            ));
+        }
+
+        let (_, loop_body) = program.split_last().unwrap();
+        let mut possibilities = vec![0];
+        let expected_output = program.iter().flat_map(|instr| instr.assemble());
+        for value in expected_output.rev() {
+            let mut new_possibilities = Vec::new();
+            for possible_high_bits in possibilities {
+                for possible_low_bits in 0i64..8 {
+                    let possibility = (possible_high_bits << 3) | possible_low_bits;
+                    let mut state = ExecutionState {
+                        a: possibility,
+                        b: 0,
+                        c: 0,
+                        instr_index: 0,
+                    };
+                    while let Some(instr) = loop_body.get(state.instr_index) {
+                        if let Some(output) = state.execute(instr) {
+                            if output == value {
+                                new_possibilities.push(possibility);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            possibilities = new_possibilities;
+        }
+
+        if let Some(input) = possibilities.first() {
+            println!("{input}");
+        } else {
+            eprintln!("no solution to part 2");
+        }
+    }
 
     Ok(())
 }
