@@ -35,14 +35,7 @@ fn main() -> Result<()> {
             let perimeter = region
                 .iter()
                 .flat_map(|&plot| {
-                    [
-                        Direction::North,
-                        Direction::South,
-                        Direction::East,
-                        Direction::West,
-                    ]
-                    .into_iter()
-                    .filter(move |dir| {
+                    Direction::CARDINAL.into_iter().filter(move |dir| {
                         if let Some(outside) = dir.do_move(plot) {
                             !region.contains(&outside)
                         } else {
@@ -63,14 +56,7 @@ fn main() -> Result<()> {
             let border_plots = region
                 .iter()
                 .flat_map(|&plot| {
-                    [
-                        Direction::North,
-                        Direction::South,
-                        Direction::East,
-                        Direction::West,
-                    ]
-                    .into_iter()
-                    .filter_map(move |dir| {
+                    Direction::CARDINAL.into_iter().filter_map(move |dir| {
                         if let Some(outside) = dir.do_move(plot) {
                             if region.contains(&outside) {
                                 None

@@ -1,19 +1,12 @@
 use anyhow::{anyhow, Result};
 use aoc_2024::board::{input_board, Board, BoardExt, Direction};
-use pathfinding::prelude::{dijkstra_all, dijkstra_partial};
+use pathfinding::prelude::{dijkstra_all, dijkstra_partial, dijkstra_reach, DijkstraReachableItem};
 use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct CheatingRacePosition {
+struct RacePosition {
     position: (usize, usize),
-    cheating: Cheating,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Cheating {
-    Available,
-    Started((usize, usize), u32),
-    Done((usize, usize), (usize, usize)),
+    cheat: Option<((usize, usize), (usize, usize))>,
 }
 
 fn find_cheating_savings_counts(
@@ -24,108 +17,85 @@ fn find_cheating_savings_counts(
     cheat_duration: u32,
 ) -> BTreeMap<u32, u32> {
     let (node_map, _) = dijkstra_partial(
-        &CheatingRacePosition {
+        &RacePosition {
             position: start,
-            cheating: Cheating::Available,
+            cheat: None,
         },
-        |&CheatingRacePosition { position, cheating }| {
-            [
-                Direction::North,
-                Direction::South,
-                Direction::East,
-                Direction::West,
-            ]
-            .into_iter()
-            .filter_map(move |dir| dir.do_move(position))
-            .flat_map(
-                move |new_position| match (board.get_at(new_position), cheating) {
-                    (None, _) => [None, None],
-                    (Some(b'#'), Cheating::Available) => [
-                        Some((
-                            CheatingRacePosition {
+        |&RacePosition { position, cheat }| -> Vec<_> {
+            if position == end {
+                // don't move from the end
+                return vec![];
+            }
+            if cheat.is_some() {
+                // skip to the end
+                return vec![(
+                    RacePosition {
+                        position: end,
+                        cheat,
+                    },
+                    costs_to_end.get(&position).copied().unwrap_or(0),
+                )];
+            } else {
+                Direction::CARDINAL
+                    .into_iter()
+                    .filter_map(|dir| dir.do_move(position))
+                    .filter_map(|new_position| match board.get_at(new_position) {
+                        None => None,
+                        Some(b'#') => None,
+                        Some(_) => Some((
+                            RacePosition {
                                 position: new_position,
-                                cheating: Cheating::Started(position, cheat_duration - 2),
+                                cheat,
                             },
                             1,
                         )),
-                        None,
-                    ],
-                    (Some(b'#'), Cheating::Started(cheat_start, cheat_time_remaining)) => [
-                        if cheat_time_remaining > 0 {
-                            Some((
-                                CheatingRacePosition {
-                                    position: new_position,
-                                    cheating: Cheating::Started(
-                                        cheat_start,
-                                        cheat_time_remaining - 1,
-                                    ),
-                                },
-                                1,
-                            ))
-                        } else {
-                            None
-                        },
-                        None,
-                    ],
-                    (Some(b'#'), _) => [None, None],
-                    (Some(b'E'), Cheating::Started(cheat_start, _)) => [
-                        Some((
-                            CheatingRacePosition {
-                                position: new_position,
-                                cheating: Cheating::Done(cheat_start, new_position),
+                    })
+                    .chain(
+                        dijkstra_reach(&position, |&position, cost| {
+                            (cost < cheat_duration)
+                                .then(|| {
+                                    Direction::CARDINAL
+                                        .into_iter()
+                                        .filter_map(move |dir| dir.do_move(position))
+                                        .filter_map(|new_position| {
+                                            match board.get_at(new_position) {
+                                                None => None,
+                                                Some(_) => Some((new_position, 1)),
+                                            }
+                                        })
+                                })
+                                .into_iter()
+                                .flatten()
+                        })
+                        .filter_map(
+                            |DijkstraReachableItem {
+                                 node: cheat_end,
+                                 total_cost,
+                                 ..
+                             }| {
+                                match board.get_at(cheat_end) {
+                                    None => None,
+                                    Some(b'#') => None,
+                                    Some(_) => Some((
+                                        RacePosition {
+                                            position: cheat_end,
+                                            cheat: Some((position, cheat_end)),
+                                        },
+                                        total_cost,
+                                    )),
+                                }
                             },
-                            1,
-                        )),
-                        None,
-                    ],
-                    (Some(_), Cheating::Started(cheat_start, cheat_time_remaining)) => [
-                        Some((
-                            CheatingRacePosition {
-                                position: end,
-                                cheating: Cheating::Done(cheat_start, new_position),
-                            },
-                            costs_to_end
-                                .get(&new_position)
-                                .map(|&cost| cost + 1)
-                                .unwrap_or(1),
-                        )),
-                        if cheat_time_remaining > 0 {
-                            Some((
-                                CheatingRacePosition {
-                                    position: new_position,
-                                    cheating: Cheating::Started(
-                                        cheat_start,
-                                        cheat_time_remaining - 1,
-                                    ),
-                                },
-                                1,
-                            ))
-                        } else {
-                            None
-                        },
-                    ],
-                    (Some(_), _) => [
-                        Some((
-                            CheatingRacePosition {
-                                position: new_position,
-                                cheating,
-                            },
-                            1,
-                        )),
-                        None,
-                    ],
-                },
-            )
-            .flatten()
+                        ),
+                    )
+                    .collect()
+            }
         },
-        |&CheatingRacePosition { position, cheating }| {
-            position == end && cheating == Cheating::Available
-        },
+        |&RacePosition { position, cheat }| position == end && cheat.is_none(),
     );
 
-    let (_, cost_without_cheating) = node_map[&CheatingRacePosition {
+    let (_, cost_without_cheating) = node_map[&RacePosition {
         position: end,
-        cheating: Cheating::Available,
+        cheat: None,
     }];
     let mut savings_counts = BTreeMap::new();
     for (_, &(_, cost)) in node_map.iter().filter(|(node, _)| node.position == end) {
@@ -150,19 +120,14 @@ fn main() -> Result<()> {
         .ok_or_else(|| anyhow!("no end position"))?;
 
     let paths_to_end = dijkstra_all(&end, |&position| {
-        [
-            Direction::North,
-            Direction::South,
-            Direction::East,
-            Direction::West,
-        ]
-        .into_iter()
-        .filter_map(move |dir| dir.do_move(position))
-        .filter_map(|position| match board.get_at(position) {
-            None => None,
-            Some(b'#') => None,
-            Some(_) => Some((position, 1)),
-        })
+        Direction::CARDINAL
+            .into_iter()
+            .filter_map(move |dir| dir.do_move(position))
+            .filter_map(|position| match board.get_at(position) {
+                None => None,
+                Some(b'#') => None,
+                Some(_) => Some((position, 1)),
+            })
     });
     let costs_to_end: HashMap<_, _> = paths_to_end
         .into_iter()
@@ -170,6 +135,7 @@ fn main() -> Result<()> {
         .collect();
 
     {
+        // part 1
         let savings_counts = find_cheating_savings_counts(&board, start, end, &costs_to_end, 2);
         let saved_at_least_100_count: u32 =
             savings_counts.range(100..).map(|(_, count)| count).sum();

@@ -64,6 +64,13 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub const CARDINAL: [Direction; 4] = [
+        Direction::North,
+        Direction::South,
+        Direction::East,
+        Direction::West,
+    ];
+
     pub fn do_move(self, (i, j): (usize, usize)) -> Option<(usize, usize)> {
         use Direction::*;
         match self {

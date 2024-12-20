@@ -10,24 +10,19 @@ fn find_path(
     astar(
         &(0, 0),
         |&pos| {
-            [
-                Direction::North,
-                Direction::South,
-                Direction::East,
-                Direction::West,
-            ]
-            .into_iter()
-            .filter_map(move |dir| dir.do_move(pos))
-            .filter_map(|pos| {
-                if pos.0 <= mem_side_length
-                    && pos.1 <= mem_side_length
-                    && !fallen_bytes.contains(&pos)
-                {
-                    Some((pos, 1))
-                } else {
-                    None
-                }
-            })
+            Direction::CARDINAL
+                .into_iter()
+                .filter_map(move |dir| dir.do_move(pos))
+                .filter_map(|pos| {
+                    if pos.0 <= mem_side_length
+                        && pos.1 <= mem_side_length
+                        && !fallen_bytes.contains(&pos)
+                    {
+                        Some((pos, 1))
+                    } else {
+                        None
+                    }
+                })
         },
         |pos| mem_side_length - pos.0 + mem_side_length - pos.1,
         |&pos| pos == (mem_side_length, mem_side_length),
