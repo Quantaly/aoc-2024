@@ -1,0 +1,9 @@
+WHITESPACE = _{ WHITE_SPACE }
+
+color     = _{ "w" | "u" | "b" | "r" | "g" }
+color_seq = @{ color+ }
+
+towels   = { color_seq ~ ("," ~ color_seq)* }
+patterns = { color_seq+ }
+
+file = _{ SOI ~ towels ~ patterns ~ EOI }

@@ -22,6 +22,7 @@ name = "aoc-2024"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "num-traits",
  "pathfinding",
  "pest",
  "pest_derive",
