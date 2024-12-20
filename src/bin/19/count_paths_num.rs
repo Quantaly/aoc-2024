@@ -5,25 +5,25 @@
 use num_traits::One;
 use std::{collections::HashMap, hash::Hash, iter::Sum};
 
-fn cached_count_paths_num<T, FN, IN, FS, N>(
+fn cached_count_paths_num<T, FN, IN, FS, C>(
     start: T,
     successors: &mut FN,
     success: &mut FS,
-    cache: &mut HashMap<T, N>,
-) -> N
+    cache: &mut HashMap<T, C>,
+) -> C
 where
     T: Eq + Hash,
     FN: FnMut(&T) -> IN,
     IN: IntoIterator<Item = T>,
     FS: FnMut(&T) -> bool,
-    N: Copy + Sum + One,
+    C: Copy + Sum + One,
 {
     if let Some(&n) = cache.get(&start) {
         return n;
     }
 
     let count = if success(&start) {
-        N::one()
+        C::one()
     } else {
         successors(&start)
             .into_iter()
@@ -38,13 +38,13 @@ where
 
 /// Count the total number of possible paths to reach a destination. There must be no loops
 /// in the graph, or the function will overflow its stack.
-pub fn count_paths_num<T, FN, IN, FS, N>(start: T, mut successors: FN, mut success: FS) -> N
+pub fn count_paths_num<T, FN, IN, FS, C>(start: T, mut successors: FN, mut success: FS) -> C
 where
     T: Eq + Hash,
     FN: FnMut(&T) -> IN,
     IN: IntoIterator<Item = T>,
     FS: FnMut(&T) -> bool,
-    N: Copy + Sum + One,
+    C: Copy + Sum + One,
 {
     cached_count_paths_num(
         start,
